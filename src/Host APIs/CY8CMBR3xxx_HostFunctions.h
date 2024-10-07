@@ -68,10 +68,12 @@
 #if !defined(CY8CMBR3xxx_HOSTFUNCTIONS_H)
 #define CY8CMBR3xxx_HOSTFUNCTIONS_H
 
+
 /*******************************************************************************
 * Included headers
 *******************************************************************************/
-#include<stdint.h>
+#include <stdbool.h>
+#include <stdint.h>
 
 
 /*******************************************************************************
@@ -87,15 +89,22 @@
 typedef unsigned char   uint8;
 typedef unsigned short  uint16;
 typedef unsigned long   uint32;
-typedef uint8 bool;
 #endif
+
 
 /*******************************************************************************
 * Function Prototypes
 *******************************************************************************/
+#ifdef __cplusplus
+extern "C" {
+#endif
 bool Host_LowLevelWrite(uint8 slaveAddress, uint8 *writeBuffer, uint8 numberOfBytes);
 bool Host_LowLevelRead(uint8 slaveAddress, uint8 *readBuffer, uint8 numberOfBytes);
 void Host_LowLevelDelay(uint16 milliseconds);
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif
 

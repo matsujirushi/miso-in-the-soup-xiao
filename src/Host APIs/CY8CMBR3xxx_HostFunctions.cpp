@@ -71,10 +71,8 @@
 * Included headers
 *******************************************************************************/
 #include "CY8CMBR3xxx_HostFunctions.h"
-#include "SCB_I2C.h"    // Default for PSoC4 to implement I2C; 
-                        // Modify this as per your I2C implementation
-#include "CyLib.h"      // Default for PSoC4, for Host_LowLevelDelay() function;
-                        // Modify as per your delay implementation
+#include <Arduino.h>
+#include <Wire.h>
 
 
 /*******************************************************************************
@@ -141,46 +139,20 @@
 *******************************************************************************/
 bool Host_LowLevelWrite(uint8 slaveAddress, uint8 *writeBuffer, uint8 numberOfBytes)
 {
-    bool status = FALSE;                                       /* Default return is FALSE if anything goes wrong */
-    uint32 localBufStatus = SCB_I2C_MSTR_NO_ERROR;             /* Error status variable */
-    uint32 localWrStatus = SCB_I2C_MSTR_NO_ERROR;              /* Error status variable */
     uint8 retryCount = CY8CMBR3xxx_RETRY_TIMES;                /* Retry count, in case of any issue */
-    
-    do
-    {
-        /* Clear the Write buffer to reset the read pointer */
-        SCB_I2CMasterClearWriteBuf();
-        
-        /* Clear the Master status since this is a new transaction */
-        SCB_I2CMasterClearStatus();
-        
-        /* Issue a non-blocking write */
-        localBufStatus = SCB_I2CMasterWriteBuf(slaveAddress, writeBuffer, numberOfBytes, SCB_I2C_MODE_COMPLETE_XFER);
-        
-        /* Proceed if there aren't any immediate issues */
-        if (SCB_I2C_MSTR_NO_ERROR == localBufStatus)
-        {
-            do
-            {
-                /* Read the Master status */
-                localWrStatus = SCB_I2CMasterStatus();
-            } while (!(SCB_I2C_MSTAT_WR_CMPLT & localWrStatus)); /* Repeat until Write operation is complete */
-            
-            /* Proceed if the Write operation completed successfully */
-            if (!(SCB_I2C_MSTAT_ERR_XFER & localWrStatus))
-            {
-                /* Wait till the Write buffer is empty */
-                while (!(numberOfBytes == SCB_I2CMasterGetWriteBufSize()));
-            }
-        }
-        
-    } while(((SCB_I2C_MSTAT_ERR_XFER & localWrStatus) || (SCB_I2C_MSTR_NO_ERROR != localBufStatus)) && (0 != (--retryCount))); /* Repeat from beginning until all bytes are written successfully */
 
-    /* Check whether the transaction was successful or it timed-out */
-    status = (retryCount)? TRUE: FALSE;
-    
-    /* Return the status */
-    return status;
+    while (true)
+    {
+        Wire.beginTransmission(slaveAddress);
+        if (Wire.write(writeBuffer, numberOfBytes) != numberOfBytes) return FALSE;
+        const auto result = Wire.endTransmission();
+        if (result == 0) break;                 // == success
+        else if (result != 2) return FALSE;     // != received NACK on transmit of address
+
+        if (--retryCount == 0) return FALSE;    // retry count exceeded
+    }
+
+    return TRUE;
 }
 
 /*******************************************************************************
@@ -225,46 +197,20 @@ bool Host_LowLevelWrite(uint8 slaveAddress, uint8 *writeBuffer, uint8 numberOfBy
 *******************************************************************************/
 bool Host_LowLevelRead(uint8 slaveAddress, uint8 *readBuffer, uint8 numberOfBytes)
 {
-    bool status = FALSE;                                       /* Default return is FALSE if anything goes wrong */
-    uint32 localBufStatus = SCB_I2C_MSTR_NO_ERROR;             /* Error status variable */
-    uint32 localRdStatus = SCB_I2C_MSTR_NO_ERROR;              /* Error status variable */
     uint8 retryCount = CY8CMBR3xxx_RETRY_TIMES;                /* Retry count, in case of any issue */
-        
-    do
+
+    while (true)
     {
-        /* Clear the read buffer to reset the read pointer */
-        SCB_I2CMasterClearReadBuf();
-        
-        /* Clear the Master status since this is a new transaction */
-        SCB_I2CMasterClearStatus();
-        
-        /* Issue a non-blocking read */
-        localBufStatus = SCB_I2CMasterReadBuf(slaveAddress, readBuffer, numberOfBytes, SCB_I2C_MODE_COMPLETE_XFER);
-        
-        /* Proceed if there aren't any immediate issues */
-        if (SCB_I2C_MSTR_NO_ERROR == localBufStatus)
-        {
-            do
-            {
-                /* Read the Master status */
-                localRdStatus = SCB_I2CMasterStatus();
-            } while (!(SCB_I2C_MSTAT_RD_CMPLT & localRdStatus)); /* Repeat until Read operation is complete */
-            
-            /* Proceed if the Read operation completed successfully */
-            if (!(SCB_I2C_MSTAT_ERR_XFER & localRdStatus))
-            {
-                /* Wait till the read buffer is filled with required amount of data */
-                while (!(numberOfBytes == SCB_I2CMasterGetReadBufSize()));
-            }
-        }
-        
-    } while(((SCB_I2C_MSTAT_ERR_XFER & localRdStatus) || (SCB_I2C_MSTR_NO_ERROR != localBufStatus)) && (0 != (--retryCount))); /* Repeat from beginning until all bytes are read successfully */
-    
-    /* Check whether the transaction was successful or it timed-out */
-    status = (retryCount)? TRUE: FALSE;
-    
-    /* Return the status */
-    return status;
+        const auto result = Wire.requestFrom(slaveAddress, numberOfBytes);
+        if (result == numberOfBytes) break; // success
+        else if (result != 0) return FALSE; // invalid
+
+        if (--retryCount == 0) return FALSE;    // retry count exceeded
+    }
+
+    for (int i = 0; i < numberOfBytes; i++) readBuffer[i] = Wire.read();
+
+    return TRUE;
 }
 
 /*******************************************************************************
@@ -290,9 +236,7 @@ bool Host_LowLevelRead(uint8 slaveAddress, uint8 *readBuffer, uint8 numberOfByte
 *******************************************************************************/
 void Host_LowLevelDelay(uint16 milliseconds)
 {
-    // Call the host-specific delay implementation
-    // Replace this with the correct host delay routine for introducing delays in milliseconds
-    CyDelay((uint32) milliseconds);
+    delay(milliseconds);
 }
 
 /****************************End of File***************************************/

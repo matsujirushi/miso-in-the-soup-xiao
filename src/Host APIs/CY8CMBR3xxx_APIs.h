@@ -56,11 +56,13 @@
 
 #if !defined(CY8CMBR3xxx_APIS_H)
 #define CY8CMBR3xxx_APIS_H
-    
+
+
 /*******************************************************************************
 * Included headers
 *******************************************************************************/
-#include<stdint.h>
+#include <stdbool.h>
+#include <stdint.h>
 
 
 /*******************************************************************************
@@ -85,8 +87,8 @@
 typedef unsigned char   uint8;
 typedef unsigned short  uint16;
 typedef unsigned long   uint32;
-typedef uint8 bool;
 #endif
+
 
 /*******************************************************************************
 * Structure Definitions
@@ -126,6 +128,9 @@ typedef struct
 /*******************************************************************************
 * Function Prototypes
 *******************************************************************************/
+#ifdef __cplusplus
+extern "C" {
+#endif
 bool CY8CMBR3xxx_WriteData(uint8 slaveAddress, uint8 *writeBuffer, uint8 numberOfBytes);
 bool CY8CMBR3xxx_ReadData(uint8 slaveAddress, uint8 registerAddress, uint8 *readBuffer, uint8 numberOfBytes);
 bool CY8CMBR3xxx_WriteDualByte(uint8 slaveAddress, uint8 registerAddress, uint16 writeData);
@@ -139,6 +144,10 @@ bool CY8CMBR3xxx_SetDebugDataSensorId(uint8 slaveAddress, uint8 sensorId);
 bool CY8CMBR3xxx_ReadSensorDebugData(uint8 slaveAddress, CY8CMBR3xxx_SENSORDATA *debugData);
 bool CY8CMBR3xxx_ReadDiffCounts(uint8 slaveAddress, uint16 *differenceCounts);
 bool CY8CMBR3xxx_ReadSensorStatus(uint8 slaveAddress, CY8CMBR3xxx_SENSORSTATUS *status);
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif
 
