@@ -86,7 +86,7 @@ static void ledWork(void) {
       LedPattern = -1;
       break;
     case 1:  // 赤点灯
-      setAllLeds(0x100000);
+      setAllLeds(0xff0000);
       LedPattern = -1;
       break;
     case 2:  // 青点滅
