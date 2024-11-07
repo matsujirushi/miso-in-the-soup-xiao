@@ -6,7 +6,7 @@
 static constexpr int MOTOR_F_PIN = D3;
 static constexpr int MOTOR_R_PIN = D2;
 static constexpr int SLED_PIN = D8;
-static constexpr int SLED_NUMBER = 5;
+static constexpr int SLED_NUMBER = 47;
 
 static constexpr int SENSOR_ADDRESS = 0x37;
 
@@ -114,7 +114,7 @@ static void ledWork(void) {
         } else if (elapsed < 1500) {
           setAllLeds(0xff);
         } else if (elapsed < 2500) {
-          setAllLeds((3500 - elapsed) * 0xff / 1000);
+          setAllLeds((2500 - elapsed) * 0xff / 1000);
         } else {
           setAllLeds(0);
         }
