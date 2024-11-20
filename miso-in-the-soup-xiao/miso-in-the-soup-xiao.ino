@@ -106,15 +106,15 @@ static void ledWork(void) {
         }
       }
       break;
-    case 4:  // 青フワフワ
+    case 4:  // 緑フワフワ
       {
         const auto elapsed = (millis() - LedPatternStartTime) % 5000;
         if (elapsed < 1000) {
-          setAllLeds(elapsed * 0xff / 1000);
+          setAllLeds((elapsed * 0x10 / 1000) << 8);
         } else if (elapsed < 1500) {
-          setAllLeds(0xff);
+          setAllLeds(0x10 << 8);
         } else if (elapsed < 2500) {
-          setAllLeds((2500 - elapsed) * 0xff / 1000);
+          setAllLeds(((2500 - elapsed) * 0x10 / 1000) << 8);
         } else {
           setAllLeds(0);
         }
